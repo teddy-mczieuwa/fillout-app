@@ -5,8 +5,11 @@ import React, { useState, useRef } from 'react';
 
 interface Tab {
   id: string;
-  title: string;
   isActive?: boolean;
+  isDefault?: boolean;
+  isFocused?: boolean;
+  isHovered?: boolean;
+  title: string;
 }
 
 interface TabSystemProps {
@@ -15,21 +18,22 @@ interface TabSystemProps {
 
 const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
   const [tabs, setTabs] = useState<Tab[]>(initialTabs.length > 0 ? initialTabs : [
-    { id: '1', title: 'Info', isActive: true },
-    { id: '2', title: 'Details' },
-    { id: '3', title: 'Other' },
-    { id: '4', title: 'Ending' },
+    { id: '1', title: 'Info', isActive: true, isDefault: true, isHovered: false, isFocused: false },
+    { id: '2', title: 'Details', isDefault: false, isHovered: false, isFocused: false },
+    { id: '3', title: 'Other', isDefault: false, isHovered: false, isFocused: false },
+    { id: '4', title: 'Ending', isDefault: false, isHovered: false, isFocused: false },
   ]);
   
   const [draggedTab, setDraggedTab] = useState<Tab | null>(null);
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
+  const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
   const [showAddButton, setShowAddButton] = useState<number | null>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
 
-  // No need for a custom drag image element anymore
-
+  // Create a custom drag ghost element
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, tab: Tab, index: number) => {
     setDraggedTab(tab);
+    setDraggedTabIndex(index);
     
     // Store initial mouse position to calculate horizontal movement only
     const initialX = e.clientX;
@@ -38,16 +42,35 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
     // Store the initial position in the dataTransfer object
     e.dataTransfer.setData('initialX', initialX.toString());
     e.dataTransfer.setData('initialY', initialY.toString());
-    
-    e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', index.toString());
+    
+    // Create a custom drag image
+    const dragGhost = e.currentTarget.cloneNode(true) as HTMLElement;
+    dragGhost.style.width = `${e.currentTarget.offsetWidth}px`;
+    dragGhost.style.height = `${e.currentTarget.offsetHeight}px`;
+    dragGhost.style.opacity = '0.7';
+    dragGhost.style.position = 'absolute';
+    dragGhost.style.top = '-1000px';
+    dragGhost.style.left = '-1000px';
+    dragGhost.style.pointerEvents = 'none';
+    
+    document.body.appendChild(dragGhost);
+    
+    // Set the custom drag image
+    e.dataTransfer.setDragImage(dragGhost, e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    e.dataTransfer.effectAllowed = 'move';
+    
+    // Clean up the ghost element after the drag operation
+    setTimeout(() => {
+      document.body.removeChild(dragGhost);
+    }, 0);
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     e.preventDefault();
     
     // Only update the draggedOverIndex if the movement is primarily horizontal
-    if (draggedTab && draggedOverIndex !== index) {
+    if (draggedTab && draggedTabIndex !== null && draggedOverIndex !== index) {
       const initialX = parseInt(e.dataTransfer.getData('initialX') || '0');
       const initialY = parseInt(e.dataTransfer.getData('initialY') || '0');
       
@@ -57,6 +80,24 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
       // If horizontal movement is greater than vertical movement, update the index
       if (deltaX > deltaY) {
         setDraggedOverIndex(index);
+        
+        // Reorder tabs in real-time during drag
+        if (index !== draggedTabIndex) {
+          const newTabs = [...tabs];
+          const draggedItem = newTabs[draggedTabIndex];
+          
+          // Remove the dragged item
+          newTabs.splice(draggedTabIndex, 1);
+          
+          // Insert at the new position
+          newTabs.splice(index, 0, draggedItem);
+          
+          // Update the dragged tab index to its new position
+          setDraggedTabIndex(index);
+          
+          // Update the tabs array
+          setTabs(newTabs);
+        }
       }
     }
   };
@@ -64,22 +105,16 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
   const handleDragEnd = () => {
     setDraggedTab(null);
     setDraggedOverIndex(null);
+    setDraggedTabIndex(null);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, dropIndex: number) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    if (!draggedTab) return;
-
-    const draggedTabIndex = tabs.findIndex(t => t.id === draggedTab.id);
-    if (draggedTabIndex === dropIndex) return;
-
-    const newTabs = [...tabs];
-    newTabs.splice(draggedTabIndex, 1);
-    newTabs.splice(dropIndex, 0, draggedTab);
-    
-    setTabs(newTabs);
+    // Since we're already moving tabs in real-time during drag,
+    // we just need to reset the state variables here
     setDraggedTab(null);
     setDraggedOverIndex(null);
+    setDraggedTabIndex(null);
   };
 
   const handleAddTab = (index: number) => {
@@ -103,21 +138,28 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
   return (
     <div className="w-full overflow-x-auto border-b border-gray-200" ref={tabsRef}>
       <div className="flex items-center min-w-max relative">
-        {/* Dashed line connecting all tabs */}
-        <div className="absolute top-1/2 left-0 right-0 border-b border-dashed border-gray-300 -z-10"></div>
+        {/* Dashed line connecting all tabs - only as long as the tabs */}
+        <div className="absolute top-1/2 border-b border-dashed border-gray-300 -z-10" 
+          style={{
+            left: '0',
+            width: `${tabs.length * 100}px`, // Approximate width based on number of tabs
+          }}
+        ></div>
         
         {tabs.map((tab, index) => (
           <React.Fragment key={tab.id}>
             {/* Tab */}
             <div 
-              className={`px-3 py-1 cursor-pointer select-none transition-colors flex items-center border border-gray-300 rounded text-sm ${tab.isActive 
+              className={`px-3 py-1 cursor-pointer select-none transition-colors flex items-center border border-gray-300 z-10 bg-white rounded text-sm ${
+                tab.isActive 
                 ? 'text-black border-b-2 border-b-black font-medium' 
-                : 'text-gray-500 hover:text-gray-700'}`}
+                : 'text-gray-500 hover:text-gray-700'
+              } ${draggedTab && draggedTab.id === tab.id ? 'opacity-0' : ''}`}
               draggable
               onDragStart={(e) => handleDragStart(e, tab, index)}
               onDragOver={(e) => handleDragOver(e, index)}
               onDragEnd={handleDragEnd}
-              onDrop={(e) => handleDrop(e, index)}
+              onDrop={(e) => handleDrop(e)}
               onClick={() => handleTabClick(tab.id)}
             >
               {tab.title}
@@ -162,7 +204,9 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
         
         {/* Add page button */}
         <div className="ml-4 flex items-center">
-          <button className="px-3 py-1 text-gray-600 border border-gray-300 rounded flex items-center gap-1.5 text-sm hover:bg-gray-50">
+          <button className="px-3 py-1 text-gray-600 border border-gray-300 rounded flex items-center gap-1.5 text-sm hover:bg-gray-50 bg-white"
+          onClick={() => handleAddTab(tabs.length)}
+          >
             <span className="text-sm font-medium">+</span> Add page
           </button>
         </div>
