@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 // Using Tailwind CSS for styling
 
 interface Tab {
@@ -25,33 +25,19 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
   const [showAddButton, setShowAddButton] = useState<number | null>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
-  const [dragImage, setDragImage] = useState<HTMLDivElement | null>(null);
 
-  // Create a drag image element
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const div = document.createElement('div');
-      div.className = 'p-2 bg-gray-100 border border-gray-300 rounded shadow-md opacity-80';
-      div.style.position = 'absolute';
-      div.style.top = '-1000px';
-      div.style.opacity = '0.8';
-      document.body.appendChild(div);
-      setDragImage(div);
-
-      return () => {
-        document.body.removeChild(div);
-      };
-    }
-  }, []);
+  // No need for a custom drag image element anymore
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, tab: Tab, index: number) => {
     setDraggedTab(tab);
     
-    // Set custom drag image
-    if (dragImage) {
-      dragImage.textContent = tab.title;
-      e.dataTransfer.setDragImage(dragImage, 0, 0);
-    }
+    // Store initial mouse position to calculate horizontal movement only
+    const initialX = e.clientX;
+    const initialY = e.clientY;
+    
+    // Store the initial position in the dataTransfer object
+    e.dataTransfer.setData('initialX', initialX.toString());
+    e.dataTransfer.setData('initialY', initialY.toString());
     
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', index.toString());
@@ -59,8 +45,19 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     e.preventDefault();
+    
+    // Only update the draggedOverIndex if the movement is primarily horizontal
     if (draggedTab && draggedOverIndex !== index) {
-      setDraggedOverIndex(index);
+      const initialX = parseInt(e.dataTransfer.getData('initialX') || '0');
+      const initialY = parseInt(e.dataTransfer.getData('initialY') || '0');
+      
+      const deltaX = Math.abs(e.clientX - initialX);
+      const deltaY = Math.abs(e.clientY - initialY);
+      
+      // If horizontal movement is greater than vertical movement, update the index
+      if (deltaX > deltaY) {
+        setDraggedOverIndex(index);
+      }
     }
   };
 
@@ -105,12 +102,15 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
 
   return (
     <div className="w-full overflow-x-auto border-b border-gray-200" ref={tabsRef}>
-      <div className="flex items-center min-w-max">
+      <div className="flex items-center min-w-max relative">
+        {/* Dashed line connecting all tabs */}
+        <div className="absolute top-1/2 left-0 right-0 border-b border-dashed border-gray-300 -z-10"></div>
+        
         {tabs.map((tab, index) => (
           <React.Fragment key={tab.id}>
             {/* Tab */}
             <div 
-              className={`px-4 py-2 cursor-pointer select-none mr-1 transition-colors flex items-center ${tab.isActive 
+              className={`px-3 py-1 cursor-pointer select-none transition-colors flex items-center border border-gray-300 rounded text-sm ${tab.isActive 
                 ? 'text-black border-b-2 border-b-black font-medium' 
                 : 'text-gray-500 hover:text-gray-700'}`}
               draggable
@@ -130,7 +130,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
                 onMouseEnter={() => setShowAddButton(index)}
                 onMouseLeave={() => setShowAddButton(null)}
               >
-                <div className="h-4 w-px bg-gray-300 mx-1"></div>
+                <div className="border-b border-dashed border-gray-300 w-4 mx-2"></div>
                 {showAddButton === index && (
                   <button 
                     className="absolute w-5 h-5 rounded-full bg-gray-100 text-gray-600 border border-gray-300 flex items-center justify-center cursor-pointer text-base hover:bg-gray-200"
@@ -146,7 +146,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
         
         {/* Add button for the end */}
         <div 
-          className="relative h-full flex items-center justify-center ml-1"
+          className="relative h-full flex items-center justify-center"
           onMouseEnter={() => setShowAddButton(tabs.length)}
           onMouseLeave={() => setShowAddButton(null)}
         >
@@ -161,9 +161,9 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
         </div>
         
         {/* Add page button */}
-        <div className="ml-4">
-          <button className="px-3 py-1.5 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 flex items-center gap-1">
-            <span className="text-xs">+</span> Add page
+        <div className="ml-4 flex items-center">
+          <button className="px-3 py-1 text-gray-600 border border-gray-300 rounded flex items-center gap-1.5 text-sm hover:bg-gray-50">
+            <span className="text-sm font-medium">+</span> Add page
           </button>
         </div>
       </div>
