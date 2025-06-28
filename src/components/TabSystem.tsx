@@ -1,15 +1,17 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 // Using Tailwind CSS for styling
 
 interface Tab {
   id: string;
+  title: string;
+  icon?: string;
   isActive?: boolean;
   isDefault?: boolean;
   isFocused?: boolean;
   isHovered?: boolean;
-  title: string;
 }
 
 interface TabSystemProps {
@@ -18,10 +20,10 @@ interface TabSystemProps {
 
 const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
   const [tabs, setTabs] = useState<Tab[]>(initialTabs.length > 0 ? initialTabs : [
-    { id: '1', title: 'Info', isActive: true, isDefault: true, isHovered: false, isFocused: false },
-    { id: '2', title: 'Details', isDefault: false, isHovered: false, isFocused: false },
-    { id: '3', title: 'Other', isDefault: false, isHovered: false, isFocused: false },
-    { id: '4', title: 'Ending', isDefault: false, isHovered: false, isFocused: false },
+    { id: '1', title: 'Info', isActive: true, isDefault: true, isHovered: false, isFocused: false, icon: '/info.svg' },
+    { id: '2', title: 'Details', isDefault: false, isHovered: false, isFocused: false, icon: '/file.svg' },
+    { id: '3', title: 'Other', isDefault: false, isHovered: false, isFocused: false, icon: '/file.svg' },
+    { id: '4', title: 'Ending', isDefault: false, isHovered: false, isFocused: false, icon: '/check.svg' },
   ]);
   
   const [draggedTab, setDraggedTab] = useState<Tab | null>(null);
@@ -29,8 +31,10 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
   const [showAddButton, setShowAddButton] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, visible: boolean, tabId: string }>({ x: 0, y: 0, visible: false, tabId: '' });
+  const [editModal, setEditModal] = useState<{ visible: boolean, tabId: string, title: string }>({ visible: false, tabId: '', title: '' });
   const tabsRef = useRef<HTMLDivElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
+  const modalInputRef = useRef<HTMLInputElement>(null);
 
   // Create a custom drag ghost element
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, tab: Tab, index: number) => {
@@ -150,10 +154,14 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
   const handleContextMenuAction = (action: string, tabId: string) => {
     switch(action) {
       case 'rename':
-        // Implement rename functionality
-        const newTitle = prompt('Enter new tab name:', tabs.find(tab => tab.id === tabId)?.title);
-        if (newTitle) {
-          setTabs(tabs.map(tab => tab.id === tabId ? { ...tab, title: newTitle } : tab));
+        // Open the edit modal instead of using prompt
+        const tabToEdit = tabs.find(tab => tab.id === tabId);
+        if (tabToEdit) {
+          setEditModal({
+            visible: true,
+            tabId: tabId,
+            title: tabToEdit.title
+          });
         }
         break;
       case 'duplicate':
@@ -188,6 +196,14 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
     setContextMenu({ ...contextMenu, visible: false });
   };
 
+  // Handle tab rename submission
+  const handleTabRename = () => {
+    if (editModal.title.trim()) {
+      setTabs(tabs.map(tab => tab.id === editModal.tabId ? { ...tab, title: editModal.title } : tab));
+      setEditModal({ ...editModal, visible: false });
+    }
+  };
+
   // Close context menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -205,8 +221,24 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
     };
   }, [contextMenu]);
 
+  // Focus input when modal opens
+  useEffect(() => {
+    if (editModal.visible && modalInputRef.current) {
+      modalInputRef.current.focus();
+    }
+  }, [editModal.visible]);
+
+  // Handle keyboard events in the modal
+  const handleModalKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleTabRename();
+    } else if (e.key === 'Escape') {
+      setEditModal({ ...editModal, visible: false });
+    }
+  };
+
   return (
-    <div className="w-full overflow-x-auto border-b border-gray-200" ref={tabsRef}>
+    <div className="w-full overflow-x-auto mt-2 border-gray-200" ref={tabsRef}>
       <div className="flex items-center min-w-max relative">
         {/* Dashed line connecting all tabs - only as long as the tabs */}
         <div className="absolute top-1/2 border-b border-dashed border-gray-300 -z-10" 
@@ -222,7 +254,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
             <div 
               className={`px-3 py-1 cursor-pointer select-none transition-colors flex items-center border border-gray-300 z-10 bg-gray-300 rounded text-sm ${
                 tab.isActive 
-                ? 'text-black border-b-2 border-b-black font-medium bg-white' 
+                ? 'text-black font-medium bg-white' 
                 : 'text-gray-500 hover:text-gray-700'
               } ${draggedTab && draggedTab.id === tab.id ? 'opacity-0' : ''}`}
               draggable
@@ -233,14 +265,16 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
               onClick={() => handleTabClick(tab.id)}
             >
               
-              <img src="circle-check,%20check%20radio,%20circle,%20checkbox,%20check,%20checkmark,%20confirm.svg" alt="" />
+              <Image src="/file.svg" alt="" width={16} height={16} className="mr-1" />
 
               {tab.title} 
 
               {tab.isActive && (
-                <img 
-                  src="dotgrid.svg" 
+                <Image 
+                  src="/dotgrid.svg" 
                   alt="" 
+                  width={16}
+                  height={16}
                   className="cursor-pointer ml-1"
                   onClick={(e) => handleIconClick(e, tab.id)}
                 />
@@ -293,6 +327,46 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
           </button>
         </div>
       </div>
+      
+      {/* Edit Tab Modal */}
+      {editModal.visible && (
+        <div 
+          className="fixed inset-0 bg-transparent bg-opacity-30 flex items-center justify-center z-50"
+          onClick={() => setEditModal({ ...editModal, visible: false })}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl p-6 w-96 max-w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-medium mb-4">Rename Tab</h3>
+            <div className="mb-4">
+              <input
+                ref={modalInputRef}
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={editModal.title}
+                onChange={(e) => setEditModal({ ...editModal, title: e.target.value })}
+                onKeyDown={handleModalKeyDown}
+                placeholder="Tab name"
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+                onClick={() => setEditModal({ ...editModal, visible: false })}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                onClick={handleTabRename}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Context Menu */}
       {contextMenu.visible && (
