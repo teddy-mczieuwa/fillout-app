@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 // Using Tailwind CSS for styling
 
 interface Tab {
@@ -28,7 +28,9 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
   const [showAddButton, setShowAddButton] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, visible: boolean, tabId: string }>({ x: 0, y: 0, visible: false, tabId: '' });
   const tabsRef = useRef<HTMLDivElement>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   // Create a custom drag ghost element
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, tab: Tab, index: number) => {
@@ -135,6 +137,74 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
     })));
   };
 
+  const handleIconClick = (e: React.MouseEvent, tabId: string) => {
+    e.stopPropagation(); // Prevent tab activation
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      visible: true,
+      tabId
+    });
+  };
+
+  const handleContextMenuAction = (action: string, tabId: string) => {
+    switch(action) {
+      case 'rename':
+        // Implement rename functionality
+        const newTitle = prompt('Enter new tab name:', tabs.find(tab => tab.id === tabId)?.title);
+        if (newTitle) {
+          setTabs(tabs.map(tab => tab.id === tabId ? { ...tab, title: newTitle } : tab));
+        }
+        break;
+      case 'duplicate':
+        // Implement duplicate functionality
+        const tabToDuplicate = tabs.find(tab => tab.id === tabId);
+        if (tabToDuplicate) {
+          const newTabId = String(Math.max(...tabs.map(t => parseInt(t.id))) + 1);
+          const newTab: Tab = { ...tabToDuplicate, id: newTabId, title: `${tabToDuplicate.title} (Copy)`, isActive: false };
+          const tabIndex = tabs.findIndex(tab => tab.id === tabId);
+          const newTabs = [...tabs];
+          newTabs.splice(tabIndex + 1, 0, newTab);
+          setTabs(newTabs);
+        }
+        break;
+      case 'delete':
+        // Implement delete functionality
+        const tabToDelete = tabs.find(tab => tab.id === tabId);
+        if (tabToDelete && !tabToDelete.isDefault && tabs.length > 1) {
+          const newTabs = tabs.filter(tab => tab.id !== tabId);
+          // If we're deleting the active tab, activate another tab
+          if (tabToDelete.isActive) {
+            const newActiveIndex = Math.max(0, tabs.findIndex(tab => tab.id === tabId) - 1);
+            newTabs[newActiveIndex].isActive = true;
+          }
+          setTabs(newTabs);
+        }
+        break;
+      default:
+        break;
+    }
+    // Close the context menu after action
+    setContextMenu({ ...contextMenu, visible: false });
+  };
+
+  // Close context menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
+        setContextMenu({ ...contextMenu, visible: false });
+      }
+    };
+
+    if (contextMenu.visible) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [contextMenu]);
+
   return (
     <div className="w-full overflow-x-auto border-b border-gray-200" ref={tabsRef}>
       <div className="flex items-center min-w-max relative">
@@ -168,7 +238,12 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
               {tab.title} 
 
               {tab.isActive && (
-                <img src="dotgrid.svg" alt="" />
+                <img 
+                  src="dotgrid.svg" 
+                  alt="" 
+                  className="cursor-pointer ml-1"
+                  onClick={(e) => handleIconClick(e, tab.id)}
+                />
               )}
             </div>
             
@@ -218,6 +293,38 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
           </button>
         </div>
       </div>
+      
+      {/* Context Menu */}
+      {contextMenu.visible && (
+        <div 
+          ref={contextMenuRef}
+          className="absolute bg-white shadow-lg rounded-md border border-gray-200 py-1 z-50"
+          style={{ 
+            left: `${contextMenu.x}px`, 
+            top: `${contextMenu.y}px`,
+            minWidth: '150px'
+          }}
+        >
+          <div 
+            className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+            onClick={() => handleContextMenuAction('rename', contextMenu.tabId)}
+          >
+            <span className="text-sm">Rename</span>
+          </div>
+          <div 
+            className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+            onClick={() => handleContextMenuAction('duplicate', contextMenu.tabId)}
+          >
+            <span className="text-sm">Duplicate</span>
+          </div>
+          <div 
+            className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2 text-red-500"
+            onClick={() => handleContextMenuAction('delete', contextMenu.tabId)}
+          >
+            <span className="text-sm">Delete</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
