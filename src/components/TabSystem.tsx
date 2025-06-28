@@ -29,6 +29,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
   const [draggedTab, setDraggedTab] = useState<Tab | null>(null);
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
+  const [dragStartCoords, setDragStartCoords] = useState<{x: number, y: number} | null>(null);
   const [showAddButton, setShowAddButton] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, visible: boolean, tabId: string }>({ x: 0, y: 0, visible: false, tabId: '' });
   const [editModal, setEditModal] = useState<{ visible: boolean, tabId: string, title: string }>({ visible: false, tabId: '', title: '' });
@@ -44,10 +45,9 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
     // Store initial mouse position to calculate horizontal movement only
     const initialX = e.clientX;
     const initialY = e.clientY;
+    setDragStartCoords({ x: initialX, y: initialY });
     
-    // Store the initial position in the dataTransfer object
-    e.dataTransfer.setData('initialX', initialX.toString());
-    e.dataTransfer.setData('initialY', initialY.toString());
+    // Store the tab index in the dataTransfer object
     e.dataTransfer.setData('text/plain', index.toString());
     
     // Create a custom drag image
@@ -76,12 +76,9 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
     e.preventDefault();
     
     // Only update the draggedOverIndex if the movement is primarily horizontal
-    if (draggedTab && draggedTabIndex !== null && draggedOverIndex !== index) {
-      const initialX = parseInt(e.dataTransfer.getData('initialX') || '0');
-      const initialY = parseInt(e.dataTransfer.getData('initialY') || '0');
-      
-      const deltaX = Math.abs(e.clientX - initialX);
-      const deltaY = Math.abs(e.clientY - initialY);
+    if (draggedTab && draggedTabIndex !== null && draggedOverIndex !== index && dragStartCoords) {
+      const deltaX = Math.abs(e.clientX - dragStartCoords.x);
+      const deltaY = Math.abs(e.clientY - dragStartCoords.y);
       
       // If horizontal movement is greater than vertical movement, update the index
       if (deltaX > deltaY) {
@@ -112,6 +109,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
     setDraggedTab(null);
     setDraggedOverIndex(null);
     setDraggedTabIndex(null);
+    setDragStartCoords(null);
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -121,6 +119,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
     setDraggedTab(null);
     setDraggedOverIndex(null);
     setDraggedTabIndex(null);
+    setDragStartCoords(null);
   };
 
   const handleAddTab = (index: number) => {
