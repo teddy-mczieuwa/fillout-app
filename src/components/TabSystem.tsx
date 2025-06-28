@@ -150,9 +150,9 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
           <React.Fragment key={tab.id}>
             {/* Tab */}
             <div 
-              className={`px-3 py-1 cursor-pointer select-none transition-colors flex items-center border border-gray-300 z-10 bg-white rounded text-sm ${
+              className={`px-3 py-1 cursor-pointer select-none transition-colors flex items-center border border-gray-300 z-10 bg-gray-300 rounded text-sm ${
                 tab.isActive 
-                ? 'text-black border-b-2 border-b-black font-medium' 
+                ? 'text-black border-b-2 border-b-black font-medium bg-white' 
                 : 'text-gray-500 hover:text-gray-700'
               } ${draggedTab && draggedTab.id === tab.id ? 'opacity-0' : ''}`}
               draggable
@@ -162,7 +162,14 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
               onDrop={(e) => handleDrop(e)}
               onClick={() => handleTabClick(tab.id)}
             >
-              {tab.title}
+              
+              <img src="circle-check,%20check%20radio,%20circle,%20checkbox,%20check,%20checkmark,%20confirm.svg" alt="" />
+
+              {tab.title} 
+
+              {tab.isActive && (
+                <img src="dotgrid.svg" alt="" />
+              )}
             </div>
             
             {/* Separator between tabs */}
