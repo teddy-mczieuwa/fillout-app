@@ -4,14 +4,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 // Using Tailwind CSS for styling
 
+import useDraggableTabs from '@/hooks/useDraggableTabs';
+
 interface Tab {
   id: string;
   title: string;
-  icon?: string;
   isActive?: boolean;
   isDefault?: boolean;
-  isFocused?: boolean;
-  isHovered?: boolean;
 }
 
 interface TabSystemProps {
@@ -19,109 +18,25 @@ interface TabSystemProps {
   onTabChange?: (tabId: string) => void;
 }
 
+
+
 const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) => {
   const [tabs, setTabs] = useState<Tab[]>(initialTabs.length > 0 ? initialTabs : [
-    { id: '1', title: 'Info', isActive: true, isDefault: true, isHovered: false, isFocused: false, icon: '/info.svg' },
-    { id: '2', title: 'Details', isDefault: false, isHovered: false, isFocused: false, icon: '/file.svg' },
-    { id: '3', title: 'Other', isDefault: false, isHovered: false, isFocused: false, icon: '/file.svg' },
-    { id: '4', title: 'Ending', isDefault: false, isHovered: false, isFocused: false, icon: '/check.svg' },
+    { id: '1', title: 'Info', isActive: true, isDefault: true,  },
+    { id: '2', title: 'Details', isDefault: false,  },
+    { id: '3', title: 'Other', isDefault: false,  },
+    { id: '4', title: 'Ending', isDefault: false, },
   ]);
   
-  const [draggedTab, setDraggedTab] = useState<Tab | null>(null);
-  const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
-  const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
-  const [dragStartCoords, setDragStartCoords] = useState<{x: number, y: number} | null>(null);
+  // Use the custom drag and drop hook
+  const { handleDragStart, handleDragOver, handleDragEnd, handleDrop, draggedTab } = useDraggableTabs({ tabs, setTabs });
+  
   const [showAddButton, setShowAddButton] = useState<number | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, visible: boolean, tabId: string }>({ x: 0, y: 0, visible: false, tabId: '' });
   const [editModal, setEditModal] = useState<{ visible: boolean, tabId: string, title: string }>({ visible: false, tabId: '', title: '' });
   const tabsRef = useRef<HTMLDivElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const modalInputRef = useRef<HTMLInputElement>(null);
-
-  // Create a custom drag ghost element
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, tab: Tab, index: number) => {
-    setDraggedTab(tab);
-    setDraggedTabIndex(index);
-    
-    // Store initial mouse position to calculate horizontal movement only
-    const initialX = e.clientX;
-    const initialY = e.clientY;
-    setDragStartCoords({ x: initialX, y: initialY });
-    
-    // Store the tab index in the dataTransfer object
-    e.dataTransfer.setData('text/plain', index.toString());
-    
-    // Create a custom drag image
-    const dragGhost = e.currentTarget.cloneNode(true) as HTMLElement;
-    dragGhost.style.width = `${e.currentTarget.offsetWidth}px`;
-    dragGhost.style.height = `${e.currentTarget.offsetHeight}px`;
-    dragGhost.style.opacity = '0.7';
-    dragGhost.style.position = 'absolute';
-    dragGhost.style.top = '-1000px';
-    dragGhost.style.left = '-1000px';
-    dragGhost.style.pointerEvents = 'none';
-    
-    document.body.appendChild(dragGhost);
-    
-    // Set the custom drag image
-    e.dataTransfer.setDragImage(dragGhost, e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-    e.dataTransfer.effectAllowed = 'move';
-    
-    // Clean up the ghost element after the drag operation
-    setTimeout(() => {
-      document.body.removeChild(dragGhost);
-    }, 0);
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
-    e.preventDefault();
-    
-    // Only update the draggedOverIndex if the movement is primarily horizontal
-    if (draggedTab && draggedTabIndex !== null && draggedOverIndex !== index && dragStartCoords) {
-      const deltaX = Math.abs(e.clientX - dragStartCoords.x);
-      const deltaY = Math.abs(e.clientY - dragStartCoords.y);
-      
-      // If horizontal movement is greater than vertical movement, update the index
-      if (deltaX > deltaY) {
-        setDraggedOverIndex(index);
-        
-        // Reorder tabs in real-time during drag
-        if (index !== draggedTabIndex) {
-          const newTabs = [...tabs];
-          const draggedItem = newTabs[draggedTabIndex];
-          
-          // Remove the dragged item
-          newTabs.splice(draggedTabIndex, 1);
-          
-          // Insert at the new position
-          newTabs.splice(index, 0, draggedItem);
-          
-          // Update the dragged tab index to its new position
-          setDraggedTabIndex(index);
-          
-          // Update the tabs array
-          setTabs(newTabs);
-        }
-      }
-    }
-  };
-
-  const handleDragEnd = () => {
-    setDraggedTab(null);
-    setDraggedOverIndex(null);
-    setDraggedTabIndex(null);
-    setDragStartCoords(null);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    // Since we're already moving tabs in real-time during drag,
-    // we just need to reset the state variables here
-    setDraggedTab(null);
-    setDraggedOverIndex(null);
-    setDraggedTabIndex(null);
-    setDragStartCoords(null);
-  };
 
   const handleAddTab = (index: number) => {
     const newTabId = String(Math.max(...tabs.map(t => parseInt(t.id))) + 1);
