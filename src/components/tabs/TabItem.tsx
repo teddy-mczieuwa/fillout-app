@@ -36,7 +36,7 @@ const TabItem: React.FC<TabItemProps> = ({
       aria-controls={`tabpanel-${tab.id}`}
       id={`tab-${tab.id}`}
       tabIndex={0}
-      className={`px-3 py-1 cursor-pointer select-none transition-colors flex focus:outline-red-200
+      className={`px-3 py-1 cursor-pointer select-none transition-colors flex focus:outline-blue-200 focus:bg-white
         items-center z-10 bg-gray-200 hover:bg-gray-300 rounded text-sm ${
         tab.isActive 
         ? 'text-black font-medium bg-white border border-gray-300 hover:bg-white' 
