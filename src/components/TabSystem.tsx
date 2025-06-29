@@ -16,9 +16,10 @@ interface Tab {
 
 interface TabSystemProps {
   initialTabs?: Tab[];
+  onTabChange?: (tabId: string) => void;
 }
 
-const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
+const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) => {
   const [tabs, setTabs] = useState<Tab[]>(initialTabs.length > 0 ? initialTabs : [
     { id: '1', title: 'Info', isActive: true, isDefault: true, isHovered: false, isFocused: false, icon: '/info.svg' },
     { id: '2', title: 'Details', isDefault: false, isHovered: false, isFocused: false, icon: '/file.svg' },
@@ -138,6 +139,11 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
       ...tab,
       isActive: tab.id === tabId
     })));
+    
+    // Notify parent component about tab change
+    if (onTabChange) {
+      onTabChange(tabId);
+    }
   };
 
   const handleIconClick = (e: React.MouseEvent, tabId: string) => {
@@ -250,10 +256,11 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
         {tabs.map((tab, index) => (
           <React.Fragment key={tab.id}>
             {/* Tab */}
-            <div 
-              className={`px-3 py-1 cursor-pointer select-none transition-colors flex items-center border border-gray-300 z-10 bg-gray-300 rounded text-sm ${
+            <div tabIndex={0} 
+              className={`px-3 py-1 cursor-pointer select-none transition-colors flex focus:outline-red-200
+                items-center z-10 bg-gray-200 hover:bg-gray-300 rounded text-sm ${
                 tab.isActive 
-                ? 'text-black font-medium bg-white' 
+                ? 'text-black font-medium bg-white border border-gray-300' 
                 : 'text-gray-500 hover:text-gray-700'
               } ${draggedTab && draggedTab.id === tab.id ? 'opacity-0' : ''}`}
               draggable
@@ -290,7 +297,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
                 <div className="border-b border-dashed border-gray-300 w-4 mx-2"></div>
                 {showAddButton === index && (
                   <button 
-                    className="absolute w-5 h-5 rounded-full bg-gray-100 text-gray-600 border border-gray-300 flex items-center justify-center cursor-pointer text-base hover:bg-gray-200"
+                    className="absolute w-4 h-4 rounded-full bg-gray-100 text-gray-600 border border-gray-300 flex items-center justify-center cursor-pointer text-base hover:bg-white"
                     onClick={() => handleAddTab(index + 1)}
                   >
                     +
@@ -319,7 +326,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [] }) => {
         
         {/* Add page button */}
         <div className="ml-4 flex items-center">
-          <button className="px-3 py-1 text-gray-600 border border-gray-300 rounded flex items-center gap-1.5 text-sm hover:bg-gray-50 bg-white"
+          <button className="focus:outline-red-200 px-3 py-1 text-gray-600 border border-gray-300 rounded flex items-center gap-1.5 text-sm hover:bg-gray-50 bg-white"
           onClick={() => handleAddTab(tabs.length)}
           >
             <span className="text-sm font-medium">+</span> Add page
