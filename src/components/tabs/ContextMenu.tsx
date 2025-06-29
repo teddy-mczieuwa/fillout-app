@@ -1,0 +1,91 @@
+import React from 'react';
+import TabContextMenuActions from './TabContextMenuActions';
+
+interface ContextMenuProps {
+  contextMenu: {
+    visible: boolean;
+    tabId: string;
+    x: number;
+    y: number;
+  };
+  contextMenuRef: React.RefObject<HTMLDivElement>;
+  handleContextMenuAction: (action: string, tabId: string) => void;
+}
+
+const ContextMenu: React.FC<ContextMenuProps> = ({
+  contextMenu,
+  contextMenuRef,
+  handleContextMenuAction
+}) => {
+  if (!contextMenu.visible) return null;
+  
+  return (
+    <div 
+      ref={contextMenuRef}
+      className="absolute bg-white shadow-lg rounded-md border border-gray-200 z-50"
+      style={{ 
+        left: `${contextMenu.x}px`, 
+        top: `${contextMenu.y}px`,
+        minWidth: '200px',
+        transform: 'translateY(-100%)', // Position above without horizontal shift
+        marginTop: '-20px' // Exactly 20px above the tab
+      }}
+      role="menu"
+      aria-orientation="vertical"
+      aria-labelledby={`tab-${contextMenu.tabId}`}
+    >
+      <div className="p-3 pb-2 border-b border-gray-100">
+        <h3 className="text-base font-medium">Settings</h3>
+      </div>
+      
+      <div className="py-1">
+        {/* Set as first page */}
+        <TabContextMenuActions
+          action="setFirst"
+          label="Set as first page"
+          icon="file-first.svg"
+          onClick={() => handleContextMenuAction('setFirst', contextMenu.tabId)}
+        />
+        
+        {/* Rename */}
+        <TabContextMenuActions
+          action="rename"
+          label="Rename"
+          icon="edit.svg"
+          onClick={() => handleContextMenuAction('rename', contextMenu.tabId)}
+        />
+        
+        {/* Copy */}
+        <TabContextMenuActions
+          action="copy"
+          label="Copy"
+          icon="copy.svg"
+          onClick={() => handleContextMenuAction('copy', contextMenu.tabId)}
+        />
+        
+        {/* Duplicate */}
+        <TabContextMenuActions
+          action="duplicate"
+          label="Duplicate"
+          icon="duplicate.svg"
+          onClick={() => handleContextMenuAction('duplicate', contextMenu.tabId)}
+        />
+      </div>
+      
+      {/* Divider */}
+      <div className="border-t border-gray-200 my-1"></div>
+      
+      {/* Delete */}
+      <div className="py-1">
+        <TabContextMenuActions
+          action="delete"
+          label="Delete"
+          icon="trash.svg"
+          onClick={() => handleContextMenuAction('delete', contextMenu.tabId)}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ContextMenu;
