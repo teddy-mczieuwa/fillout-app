@@ -88,8 +88,29 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
   // Handle context menu actions
   const handleContextMenuAction = (action: string, tabId: string) => {
     switch(action) {
+      case 'setFirst':
+        // Move the tab to the first position
+        const tabToMove = tabs.find(tab => tab.id === tabId);
+        if (tabToMove) {
+          const newTabs = [tabToMove, ...tabs.filter(tab => tab.id !== tabId)];
+          setTabs(newTabs);
+        }
+        break;
       case 'rename':
         openEditModal(tabId);
+        break;
+      case 'copy':
+        // Similar to duplicate but with different naming convention
+        const tabToCopy = tabs.find(tab => tab.id === tabId);
+        if (tabToCopy) {
+          const newTab = {
+            ...tabToCopy,
+            id: `tab-${Date.now()}`,
+            title: `${tabToCopy.title} (Copy)`,
+            isActive: false
+          };
+          setTabs([...tabs, newTab]);
+        }
         break;
       case 'duplicate':
         handleDuplicateTab(tabId);
@@ -293,40 +314,109 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
       {contextMenu.visible && (
         <div 
           ref={contextMenuRef}
-          className="absolute bg-white shadow-lg rounded-md border border-gray-200 py-1 z-50"
+          className="absolute bg-white shadow-lg rounded-md border border-gray-200 z-50"
           style={{ 
             left: `${contextMenu.x}px`, 
             top: `${contextMenu.y}px`,
-            minWidth: '150px'
+            minWidth: '200px',
+            transform: 'translateY(-100%)', // Position above without horizontal shift
+            marginTop: '-20px' // Exactly 20px above the tab
           }}
           role="menu"
           aria-orientation="vertical"
           aria-labelledby={`tab-${contextMenu.tabId}`}
         >
-          <button 
-            className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2 focus:outline-none focus:bg-gray-100"
-            onClick={() => handleContextMenuAction('rename', contextMenu.tabId)}
-            role="menuitem"
-            tabIndex={0}
-          >
-            <span className="text-sm">Rename</span>
-          </button>
-          <button 
-            className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2 focus:outline-none focus:bg-gray-100"
-            onClick={() => handleContextMenuAction('duplicate', contextMenu.tabId)}
-            role="menuitem"
-            tabIndex={0}
-          >
-            <span className="text-sm">Duplicate</span>
-          </button>
-          <button 
-            className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2 text-red-500 focus:outline-none focus:bg-gray-100"
-            onClick={() => handleContextMenuAction('delete', contextMenu.tabId)}
-            role="menuitem"
-            tabIndex={0}
-          >
-            <span className="text-sm">Delete</span>
-          </button>
+          <div className="p-3 pb-2 border-b border-gray-100">
+            <h3 className="text-base font-medium">Settings</h3>
+          </div>
+          
+          <div className="py-1">
+            {/* Set as first page */}
+            <button 
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-3 focus:outline-none focus:bg-gray-100"
+              onClick={() => handleContextMenuAction('setFirst', contextMenu.tabId)}
+              role="menuitem"
+              tabIndex={0}
+            >
+              <span className="text-blue-500">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 24V0H14L20 6V24H4Z" fill="currentColor" fillOpacity="0.2" />
+                  <path d="M14 0V6H20M4 24V0H14L20 6V24H4Z" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </span>
+              <span>Set as first page</span>
+            </button>
+            
+            {/* Rename */}
+            <button 
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-3 focus:outline-none focus:bg-gray-100"
+              onClick={() => handleContextMenuAction('rename', contextMenu.tabId)}
+              role="menuitem"
+              tabIndex={0}
+            >
+              <span className="text-gray-500">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12.9 6.85786L17.1421 11.1L7.24264 21H3V16.7574L12.9 6.85786Z" fill="currentColor" fillOpacity="0.2" />
+                  <path d="M12.9 6.85786L17.1421 11.1M12.9 6.85786L16.0711 3.68629C16.8513 2.90625 18.1077 2.90625 18.8878 3.68629L20.3137 5.1122C21.0938 5.89224 21.0938 7.14861 20.3137 7.92865L17.1421 11.1M12.9 6.85786L3 16.7574V21H7.24264L17.1421 11.1" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </span>
+              <span>Rename</span>
+            </button>
+            
+            {/* Copy */}
+            <button 
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-3 focus:outline-none focus:bg-gray-100"
+              onClick={() => handleContextMenuAction('copy', contextMenu.tabId)}
+              role="menuitem"
+              tabIndex={0}
+            >
+              <span className="text-gray-500">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 8V4H20V16H16M4 8H16V20H4V8Z" fill="currentColor" fillOpacity="0.2" />
+                  <path d="M8 8V4H20V16H16M4 8H16V20H4V8Z" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </span>
+              <span>Copy</span>
+            </button>
+            
+            {/* Duplicate */}
+            <button 
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-3 focus:outline-none focus:bg-gray-100"
+              onClick={() => handleContextMenuAction('duplicate', contextMenu.tabId)}
+              role="menuitem"
+              tabIndex={0}
+            >
+              <span className="text-gray-500">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M16 16V4H4V16H16Z" fill="currentColor" fillOpacity="0.2" />
+                  <path d="M8 8H20V20H8V8Z" fill="currentColor" fillOpacity="0.2" />
+                  <path d="M16 16V4H4V16H16ZM16 16H20V20H8V16" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </span>
+              <span>Duplicate</span>
+            </button>
+          </div>
+          
+          {/* Divider */}
+          <div className="border-t border-gray-200 my-1"></div>
+          
+          {/* Delete */}
+          <div className="py-1">
+            <button 
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-3 focus:outline-none focus:bg-gray-100"
+              onClick={() => handleContextMenuAction('delete', contextMenu.tabId)}
+              role="menuitem"
+              tabIndex={0}
+            >
+              <span className="text-red-500">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 8H19L18 21H6L5 8Z" fill="currentColor" fillOpacity="0.2" />
+                  <path d="M10 11V17M14 11V17M21 6H3M16 6L15.7294 4.58818C15.4671 3.3293 14.3562 2.5 13.0716 2.5H10.9284C9.64384 2.5 8.53292 3.3293 8.27065 4.58818L8 6M5 6H19L18 21H6L5 6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </span>
+              <span className="text-red-500">Delete</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

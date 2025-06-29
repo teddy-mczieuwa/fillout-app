@@ -30,12 +30,28 @@ const useContextMenu = (): UseContextMenuReturn => {
 
   const handleIconClick = (e: React.MouseEvent, tabId: string) => {
     e.stopPropagation(); // Prevent tab activation
-    setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      visible: true,
-      tabId
-    });
+    
+    // Get the tab element to position the menu above it
+    const tabElement = document.getElementById(`tab-${tabId}`);
+    if (tabElement) {
+      const tabRect = tabElement.getBoundingClientRect();
+      
+      // Position the menu above the left side of the tab list item
+      setContextMenu({
+        x: tabRect.left, // Position at the left edge of the tab
+        y: tabRect.top, // Position at the top of the tab, margin will handle the gap
+        visible: true,
+        tabId
+      });
+    } else {
+      // Fallback to click position if tab element not found
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        visible: true,
+        tabId
+      });
+    }
   };
 
   const hideContextMenu = () => {
