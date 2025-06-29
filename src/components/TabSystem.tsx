@@ -109,7 +109,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
               className={`px-3 py-1 cursor-pointer select-none transition-colors flex focus:outline-red-200
                 items-center z-10 bg-gray-200 hover:bg-gray-300 rounded text-sm ${
                 tab.isActive 
-                ? 'text-black font-medium bg-white border border-gray-300' 
+                ? 'text-black font-medium bg-white border border-gray-300 hover:bg-white' 
                 : 'text-gray-500 hover:text-gray-700'
               } ${draggedTab && draggedTab.id === tab.id ? 'opacity-0' : ''}`}
               draggable
@@ -120,13 +120,13 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
               onClick={() => handleTabClick(tab.id)}
             >
               
-              <Image src="/file.svg" alt="" width={16} height={16} className="mr-1" />
+              <Image src="icons/file.svg" alt="" width={16} height={16} className="mr-1" />
 
               {tab.title} 
 
               {tab.isActive && (
                 <Image 
-                  src="/dotgrid.svg" 
+                  src="icons/dotgrid.svg" 
                   alt="" 
                   width={16}
                   height={16}
