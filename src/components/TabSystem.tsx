@@ -1,160 +1,94 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import Image from 'next/image';
 // Using Tailwind CSS for styling
 
 import useDraggableTabs from '@/hooks/useDraggableTabs';
+import useTabManagement from '@/hooks/useTabManagement';
+import useContextMenu from '@/hooks/useContextMenu';
+import useEditModal from '@/hooks/useEditModal';
+import useAddButtonHover from '@/hooks/useAddButtonHover';
 
-interface Tab {
-  id: string;
-  title: string;
-  isActive?: boolean;
-  isDefault?: boolean;
-}
+// Tab interface is now imported from useDraggableTabs
+import { Tab } from '@/hooks/useDraggableTabs';
 
 interface TabSystemProps {
   initialTabs?: Tab[];
   onTabChange?: (tabId: string) => void;
 }
 
-
-
 const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) => {
-  const [tabs, setTabs] = useState<Tab[]>(initialTabs.length > 0 ? initialTabs : [
-    { id: '1', title: 'Info', isActive: true, isDefault: true,  },
-    { id: '2', title: 'Details', isDefault: false,  },
-    { id: '3', title: 'Other', isDefault: false,  },
-    { id: '4', title: 'Ending', isDefault: false, },
-  ]);
+  // Use the tab management hook
+  const { 
+    tabs, 
+    setTabs, 
+    handleAddTab: addTab, 
+    handleTabClick, 
+    handleDuplicateTab, 
+    handleDeleteTab 
+  } = useTabManagement({ initialTabs, onTabChange });
   
   // Use the custom drag and drop hook
-  const { handleDragStart, handleDragOver, handleDragEnd, handleDrop, draggedTab } = useDraggableTabs({ tabs, setTabs });
+  const { 
+    handleDragStart, 
+    handleDragOver, 
+    handleDragEnd, 
+    handleDrop, 
+    draggedTab 
+  } = useDraggableTabs({ tabs, setTabs });
   
-  const [showAddButton, setShowAddButton] = useState<number | null>(null);
-  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, visible: boolean, tabId: string }>({ x: 0, y: 0, visible: false, tabId: '' });
-  const [editModal, setEditModal] = useState<{ visible: boolean, tabId: string, title: string }>({ visible: false, tabId: '', title: '' });
+  // Use the add button hover hook
+  const { 
+    showAddButton, 
+    setShowAddButton, 
+    handleMouseEnter, 
+    handleMouseLeave 
+  } = useAddButtonHover();
+  
+  // Use the context menu hook
+  const { 
+    contextMenu, 
+    contextMenuRef, 
+    handleIconClick, 
+    hideContextMenu 
+  } = useContextMenu();
+  
+  // Use the edit modal hook
+  const { 
+    editModal, 
+    modalInputRef, 
+    setEditModal, 
+    handleTabRename, 
+    handleModalKeyDown, 
+    openEditModal 
+  } = useEditModal({ tabs, setTabs });
+  
   const tabsRef = useRef<HTMLDivElement>(null);
-  const contextMenuRef = useRef<HTMLDivElement>(null);
-  const modalInputRef = useRef<HTMLInputElement>(null);
-
+  
+  // Wrapper for handleAddTab that also hides the add button
   const handleAddTab = (index: number) => {
-    const newTabId = String(Math.max(...tabs.map(t => parseInt(t.id))) + 1);
-    const newTab: Tab = { id: newTabId, title: `New Tab` };
-    
-    const newTabs = [...tabs];
-    newTabs.splice(index, 0, newTab);
-    
-    setTabs(newTabs);
+    addTab(index);
     setShowAddButton(null);
   };
-
-  const handleTabClick = (tabId: string) => {
-    setTabs(tabs.map(tab => ({
-      ...tab,
-      isActive: tab.id === tabId
-    })));
-    
-    // Notify parent component about tab change
-    if (onTabChange) {
-      onTabChange(tabId);
-    }
-  };
-
-  const handleIconClick = (e: React.MouseEvent, tabId: string) => {
-    e.stopPropagation(); // Prevent tab activation
-    setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      visible: true,
-      tabId
-    });
-  };
-
+  
+  // Handle context menu actions
   const handleContextMenuAction = (action: string, tabId: string) => {
     switch(action) {
       case 'rename':
-        // Open the edit modal instead of using prompt
-        const tabToEdit = tabs.find(tab => tab.id === tabId);
-        if (tabToEdit) {
-          setEditModal({
-            visible: true,
-            tabId: tabId,
-            title: tabToEdit.title
-          });
-        }
+        openEditModal(tabId);
         break;
       case 'duplicate':
-        // Implement duplicate functionality
-        const tabToDuplicate = tabs.find(tab => tab.id === tabId);
-        if (tabToDuplicate) {
-          const newTabId = String(Math.max(...tabs.map(t => parseInt(t.id))) + 1);
-          const newTab: Tab = { ...tabToDuplicate, id: newTabId, title: `${tabToDuplicate.title} (Copy)`, isActive: false };
-          const tabIndex = tabs.findIndex(tab => tab.id === tabId);
-          const newTabs = [...tabs];
-          newTabs.splice(tabIndex + 1, 0, newTab);
-          setTabs(newTabs);
-        }
+        handleDuplicateTab(tabId);
         break;
       case 'delete':
-        // Implement delete functionality
-        const tabToDelete = tabs.find(tab => tab.id === tabId);
-        if (tabToDelete && !tabToDelete.isDefault && tabs.length > 1) {
-          const newTabs = tabs.filter(tab => tab.id !== tabId);
-          // If we're deleting the active tab, activate another tab
-          if (tabToDelete.isActive) {
-            const newActiveIndex = Math.max(0, tabs.findIndex(tab => tab.id === tabId) - 1);
-            newTabs[newActiveIndex].isActive = true;
-          }
-          setTabs(newTabs);
-        }
+        handleDeleteTab(tabId);
         break;
       default:
         break;
     }
     // Close the context menu after action
-    setContextMenu({ ...contextMenu, visible: false });
-  };
-
-  // Handle tab rename submission
-  const handleTabRename = () => {
-    if (editModal.title.trim()) {
-      setTabs(tabs.map(tab => tab.id === editModal.tabId ? { ...tab, title: editModal.title } : tab));
-      setEditModal({ ...editModal, visible: false });
-    }
-  };
-
-  // Close context menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
-        setContextMenu({ ...contextMenu, visible: false });
-      }
-    };
-
-    if (contextMenu.visible) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [contextMenu]);
-
-  // Focus input when modal opens
-  useEffect(() => {
-    if (editModal.visible && modalInputRef.current) {
-      modalInputRef.current.focus();
-    }
-  }, [editModal.visible]);
-
-  // Handle keyboard events in the modal
-  const handleModalKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleTabRename();
-    } else if (e.key === 'Escape') {
-      setEditModal({ ...editModal, visible: false });
-    }
+    hideContextMenu();
   };
 
   return (
@@ -206,8 +140,8 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
             {index < tabs.length - 1 && (
               <div 
                 className="relative h-full flex items-center justify-center"
-                onMouseEnter={() => setShowAddButton(index)}
-                onMouseLeave={() => setShowAddButton(null)}
+                onMouseEnter={() => handleMouseEnter(index)}
+                onMouseLeave={() => handleMouseLeave()}
               >
                 <div className="border-b border-dashed border-gray-300 w-4 mx-2"></div>
                 {showAddButton === index && (
@@ -226,8 +160,8 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
         {/* Add button for the end */}
         <div 
           className="relative h-full flex items-center justify-center"
-          onMouseEnter={() => setShowAddButton(tabs.length)}
-          onMouseLeave={() => setShowAddButton(null)}
+          onMouseEnter={() => handleMouseEnter(tabs.length)}
+          onMouseLeave={() => handleMouseLeave()}
         >
           {showAddButton === tabs.length && (
             <button 
