@@ -74,15 +74,9 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
   
 
   const renderIcon = (icon?: string) => {
-    switch(icon) {
-      case 'info.svg':
-        return <Image src="icons/info.svg" alt="Info icon" className="mr-1" width={16} height={16} />;
-      case 'check.svg':
-        return <Image src="icons/check.svg" alt="Check icon" className="mr-1" width={16} height={16} />;
-      default:
-        return <Image src="icons/file.svg" alt="File icon" className="mr-1" width={16} height={16} />;
-
-    }
+    const iconSrc = icon === 'info.svg' || icon === 'check.svg' ? icon : 'file.svg';
+    const altText = icon === 'info.svg' ? 'Info icon' : icon === 'check.svg' ? 'Check icon' : 'File icon';
+    return <Image src={`icons/${iconSrc}`} alt={altText} className="mr-1" width={16} height={16} />;
   };
 
   // Handle context menu actions
@@ -100,25 +94,12 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
         openEditModal(tabId);
         break;
       case 'copy':
-        // Similar to duplicate but with different naming convention
-        const tabToCopy = tabs.find(tab => tab.id === tabId);
-        if (tabToCopy) {
-          const newTab = {
-            ...tabToCopy,
-            id: `tab-${Date.now()}`,
-            title: `${tabToCopy.title} (Copy)`,
-            isActive: false
-          };
-          setTabs([...tabs, newTab]);
-        }
-        break;
       case 'duplicate':
+        // Use the existing duplicate handler for both copy and duplicate actions
         handleDuplicateTab(tabId);
         break;
       case 'delete':
         handleDeleteTab(tabId);
-        break;
-      default:
         break;
     }
     // Close the context menu after action
