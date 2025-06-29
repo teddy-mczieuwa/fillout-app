@@ -122,12 +122,13 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
         {tabs.map((tab, index) => (
           <React.Fragment key={tab.id}>
             {/* Tab */}
-            <div 
+            <button 
+              type="button"
               role="tab"
               aria-selected={tab.isActive}
               aria-controls={`tabpanel-${tab.id}`}
               id={`tab-${tab.id}`}
-              tabIndex={tab.isActive ? 0 : -1} 
+              tabIndex={0}
               className={`px-3 py-1 cursor-pointer select-none transition-colors flex focus:outline-red-200
                 items-center z-10 bg-gray-200 hover:bg-gray-300 rounded text-sm ${
                 tab.isActive 
@@ -141,9 +142,23 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
               onDrop={(e) => handleDrop(e)}
               onClick={() => handleTabClick(tab.id)}
               onKeyDown={(e) => {
+                // Select tab with Enter or Space
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   handleTabClick(tab.id);
+                }
+                // Allow arrow key navigation between tabs
+                else if (e.key === 'ArrowRight' && index < tabs.length - 1) {
+                  e.preventDefault();
+                  const nextTabId = tabs[index + 1].id;
+                  handleTabClick(nextTabId);
+                  document.getElementById(`tab-${nextTabId}`)?.focus();
+                }
+                else if (e.key === 'ArrowLeft' && index > 0) {
+                  e.preventDefault();
+                  const prevTabId = tabs[index - 1].id;
+                  handleTabClick(prevTabId);
+                  document.getElementById(`tab-${prevTabId}`)?.focus();
                 }
               }}
             >
@@ -169,7 +184,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
                   />
                 </button>
               )}
-            </div>
+            </button>
             
             {/* Separator between tabs */}
             {index < tabs.length - 1 && (
@@ -202,7 +217,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
         >
           {showAddButton === tabs.length && (
             <button 
-              className="w-5 h-5 rounded-full bg-gray-100 text-gray-600 border border-gray-300 flex items-center justify-center cursor-pointer text-base hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-5 h-5 rounded-full bg-gray-100 text-gray-600 border border-gray-300 flex items-center justify-center cursor-pointer text-base hover:bg-gray-200"
               onClick={() => handleAddTab(tabs.length)}
               aria-label="Add tab at the end"
               type="button"
@@ -215,7 +230,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
         {/* Add page button */}
         <div className="ml-4 flex items-center">
           <button 
-            className="focus:outline-none focus:ring-2 focus:ring-blue-500 px-3 py-1 text-gray-600 border border-gray-300 rounded flex items-center gap-1.5 text-sm hover:bg-gray-50 bg-white"
+            className="focus:outline-blue-200 focus:shadow-xs px-3 py-1 text-gray-600 border border-gray-300 rounded flex items-center gap-1.5 text-sm hover:bg-gray-50 bg-white"
             onClick={() => handleAddTab(tabs.length)}
             aria-label="Add new page"
             type="button"

@@ -36,13 +36,13 @@ export interface UseDraggableTabsProps {
  */
 export interface DragHandlers {
   /** Handler for starting drag operation */
-  handleDragStart: (e: React.DragEvent<HTMLDivElement>, tab: Tab, index: number) => void;
+  handleDragStart: (e: React.DragEvent<HTMLElement>, tab: Tab, index: number) => void;
   /** Handler for dragging over a drop target */
-  handleDragOver: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+  handleDragOver: (e: React.DragEvent<HTMLElement>, index: number) => void;
   /** Handler for ending drag operation */
   handleDragEnd: () => void;
   /** Handler for dropping on a target */
-  handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
+  handleDrop: (e: React.DragEvent<HTMLElement>) => void;
   /** Currently dragged tab or null if no drag in progress */
   draggedTab: Tab | null;
 }
@@ -104,7 +104,7 @@ const useDraggableTabs = ({
   /**
    * Handles the start of a drag operation
    */
-  const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, tab: Tab, index: number) => {
+  const handleDragStart = useCallback((e: React.DragEvent<HTMLElement>, tab: Tab, index: number) => {
     try {
       setDraggedTab(tab);
       setDraggedTabIndex(index);
@@ -138,7 +138,7 @@ const useDraggableTabs = ({
   /**
    * Handles dragging over a potential drop target
    */
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>, index: number) => {
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLElement>, index: number) => {
     e.preventDefault();
     
     // Only update if we have all the necessary state and the index has changed
@@ -186,7 +186,7 @@ const useDraggableTabs = ({
   /**
    * Handles dropping on a target
    */
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = useCallback((e: React.DragEvent<HTMLElement>) => {
     e.preventDefault();
     resetDragState();
   }, [resetDragState]);
