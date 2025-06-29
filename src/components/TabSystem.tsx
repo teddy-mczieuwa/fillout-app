@@ -190,11 +190,30 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
               <span>{tab.title}</span> 
 
               {tab.isActive && (
-                <button
-                  type="button"
+                <div
+                  role="button"
+                  tabIndex={0}
                   aria-label={`Options for ${tab.title} tab`}
                   className="flex items-center justify-center ml-1 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-                  onClick={(e) => handleIconClick(e, tab.id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the parent button
+                    handleIconClick(e, tab.id);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      // Create a synthetic MouseEvent since handleIconClick expects a MouseEvent
+                      const rect = (e.target as HTMLElement).getBoundingClientRect();
+                      const syntheticEvent = {
+                        clientX: rect.left,
+                        clientY: rect.top,
+                        preventDefault: () => {},
+                        stopPropagation: () => {}
+                      } as unknown as React.MouseEvent;
+                      handleIconClick(syntheticEvent, tab.id);
+                    }
+                  }}
                 >
                   <Image 
                     src="icons/dotgrid.svg" 
@@ -203,7 +222,7 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
                     height={16}
                     className="cursor-pointer"
                   />
-                </button>
+                </div>
               )}
             </button>
             
