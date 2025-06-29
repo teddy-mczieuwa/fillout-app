@@ -72,6 +72,19 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
     setShowAddButton(null);
   };
   
+
+  const renderIcon = (icon?: string) => {
+    switch(icon) {
+      case 'info.svg':
+        return <Image src="icons/info.svg" alt="Info icon" className="mr-1" width={16} height={16} />;
+      case 'check.svg':
+        return <Image src="icons/check.svg" alt="Check icon" className="mr-1" width={16} height={16} />;
+      default:
+        return <Image src="icons/file.svg" alt="File icon" className="mr-1" width={16} height={16} />;
+
+    }
+  };
+
   // Handle context menu actions
   const handleContextMenuAction = (action: string, tabId: string) => {
     switch(action) {
@@ -134,15 +147,9 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
                 }
               }}
             >
-              
-              <Image 
-                src="icons/file.svg" 
-                alt="File icon" 
-                width={16} 
-                height={16} 
-                className="mr-1" 
-                priority={index < 4} // Prioritize loading for visible tabs
-              />
+
+              {renderIcon(tab.icon)}
+             
 
               <span>{tab.title}</span> 
 

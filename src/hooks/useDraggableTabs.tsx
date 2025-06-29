@@ -8,6 +8,7 @@ export interface Tab {
   title: string;
   isActive?: boolean;
   isDefault?: boolean;
+  icon?: string;
 }
 
 /**

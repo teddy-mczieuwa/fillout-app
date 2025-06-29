@@ -20,10 +20,10 @@ interface UseTabManagementReturn {
  */
 const useTabManagement = ({ initialTabs = [], onTabChange }: UseTabManagementProps): UseTabManagementReturn => {
   const [tabs, setTabs] = useState<Tab[]>(initialTabs.length > 0 ? initialTabs : [
-    { id: '1', title: 'Info', isActive: true, isDefault: true },
-    { id: '2', title: 'Details', isDefault: false },
-    { id: '3', title: 'Other', isDefault: false },
-    { id: '4', title: 'Ending', isDefault: false },
+    { id: '1', title: 'Info', isActive: true, isDefault: true , icon: 'info.svg' },
+    { id: '2', title: 'Details', isDefault: false , icon: 'file.svg' },
+    { id: '3', title: 'Other', isDefault: false , icon: 'file1.svg' },
+    { id: '4', title: 'Ending', isDefault: false , icon: 'check.svg' },
   ]);
 
   // Generate a new unique tab ID
