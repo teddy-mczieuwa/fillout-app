@@ -38,12 +38,13 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         <h3 className="text-base font-medium">Settings</h3>
       </div>
       
-      <div className="py-1">
+      <div>
         {/* Set as first page */}
         <TabContextMenuActions
           action="setFirst"
           label="Set as first page"
-          icon="file-first.svg"
+          icon="flag.svg"
+          iconColor="text-blue-500"
           onClick={() => handleContextMenuAction('setFirst', contextMenu.tabId)}
         />
         
@@ -51,7 +52,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         <TabContextMenuActions
           action="rename"
           label="Rename"
-          icon="edit.svg"
+          icon="pencil-line.svg"
+          iconColor="text-gray-500"
           onClick={() => handleContextMenuAction('rename', contextMenu.tabId)}
         />
         
@@ -60,6 +62,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           action="copy"
           label="Copy"
           icon="copy.svg"
+          iconColor="text-gray-500"
           onClick={() => handleContextMenuAction('copy', contextMenu.tabId)}
         />
         
@@ -68,6 +71,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           action="duplicate"
           label="Duplicate"
           icon="duplicate.svg"
+          iconColor="text-gray-500"
           onClick={() => handleContextMenuAction('duplicate', contextMenu.tabId)}
         />
       </div>
@@ -76,11 +80,12 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       <div className="border-t border-gray-200 my-1"></div>
       
       {/* Delete */}
-      <div className="py-1">
+      <div>
         <TabContextMenuActions
           action="delete"
           label="Delete"
           icon="trash.svg"
+          iconColor="text-red-500"
           onClick={() => handleContextMenuAction('delete', contextMenu.tabId)}
         />
       </div>

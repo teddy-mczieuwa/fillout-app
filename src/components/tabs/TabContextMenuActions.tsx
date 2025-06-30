@@ -5,6 +5,7 @@ interface TabContextMenuActionsProps {
   action: string;
   label: string;
   icon: string;
+  iconColor?: string;
   onClick: () => void;
 }
 
@@ -12,6 +13,7 @@ const TabContextMenuActions: React.FC<TabContextMenuActionsProps> = ({
   action,
   label,
   icon,
+  iconColor = 'text-gray-500',
   onClick
 }) => {
   return (
@@ -21,7 +23,7 @@ const TabContextMenuActions: React.FC<TabContextMenuActionsProps> = ({
       data-action={action}
       role="menuitem"
     >
-      <div className="w-5 h-5 mr-3 flex items-center justify-center">
+      <div className={`w-5 h-5 mr-3 flex items-center justify-center ${iconColor}`}>
         <Image src={`icons/${icon}`} alt="" width={16} height={16} />
       </div>
       {label}
