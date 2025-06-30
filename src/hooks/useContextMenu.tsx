@@ -15,9 +15,6 @@ interface UseContextMenuReturn {
   setContextMenu: React.Dispatch<React.SetStateAction<ContextMenuState>>;
 }
 
-/**
- * Custom hook for managing context menu state and behavior
- */
 const useContextMenu = (): UseContextMenuReturn => {
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({ 
     x: 0, 
@@ -31,20 +28,17 @@ const useContextMenu = (): UseContextMenuReturn => {
   const handleIconClick = (e: React.MouseEvent, tabId: string) => {
     e.stopPropagation(); // Prevent tab activation
     
-    // Get the tab element to position the menu above it
     const tabElement = document.getElementById(`tab-${tabId}`);
     if (tabElement) {
       const tabRect = tabElement.getBoundingClientRect();
       
-      // Position the menu above the left side of the tab list item
       setContextMenu({
-        x: tabRect.left, // Position at the left edge of the tab
-        y: tabRect.top, // Position at the top of the tab, margin will handle the gap
+        x: tabRect.left, 
+        y: tabRect.top, 
         visible: true,
         tabId
       });
     } else {
-      // Fallback to click position if tab element not found
       setContextMenu({
         x: e.clientX,
         y: e.clientY,
@@ -58,7 +52,6 @@ const useContextMenu = (): UseContextMenuReturn => {
     setContextMenu(prev => ({ ...prev, visible: false }));
   };
 
-  // Close context menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {

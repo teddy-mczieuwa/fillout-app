@@ -45,7 +45,6 @@ const TabItem: React.FC<TabItemProps> = ({
       } ${draggedTab && draggedTab.id === tab.id ? 'opacity-0' : 'opacity-100'}`}
       draggable
       onDragStart={(e) => {
-        // Remove focus when dragging starts
         (e.target as HTMLElement).blur();
         handleDragStart(e, tab, index);
       }}
@@ -54,12 +53,10 @@ const TabItem: React.FC<TabItemProps> = ({
       onDrop={(e) => handleDrop(e)}
       onClick={() => handleTabClick(tab.id)}
       onKeyDown={(e) => {
-        // Select tab with Enter or Space
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           handleTabClick(tab.id);
         }
-        // Allow arrow key navigation between tabs
         else if (e.key === 'ArrowRight' && index < tabsLength - 1) {
           e.preventDefault();
           const nextTabId = `tab-${parseInt(tab.id) + 1}`;
@@ -84,14 +81,13 @@ const TabItem: React.FC<TabItemProps> = ({
           aria-label={`Options for ${tab.title} tab`}
           className="flex items-center justify-center ml-1 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
           onClick={(e) => {
-            e.stopPropagation(); // Prevent triggering the parent button
+            e.stopPropagation();
             handleIconClick(e, tab.id);
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.stopPropagation();
               e.preventDefault();
-              // Create a synthetic MouseEvent since handleIconClick expects a MouseEvent
               const rect = (e.target as HTMLElement).getBoundingClientRect();
               const syntheticEvent = {
                 clientX: rect.left,

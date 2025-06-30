@@ -10,9 +10,6 @@ interface UseTabContextMenuActionsProps {
   hideContextMenu: () => void;
 }
 
-/**
- * Custom hook for handling tab context menu actions
- */
 const useTabContextMenuActions = ({
   tabs,
   setTabs,
@@ -25,7 +22,6 @@ const useTabContextMenuActions = ({
   const handleContextMenuAction = useCallback((action: string, tabId: string) => {
     switch(action) {
       case 'setFirst':
-        // Move the tab to the first position
         const tabToMove = tabs.find(tab => tab.id === tabId);
         if (tabToMove) {
           const newTabs = [tabToMove, ...tabs.filter(tab => tab.id !== tabId)];
@@ -37,14 +33,12 @@ const useTabContextMenuActions = ({
         break;
       case 'copy':
       case 'duplicate':
-        // Use the existing duplicate handler for both copy and duplicate actions
         handleDuplicateTab(tabId);
         break;
       case 'delete':
         handleDeleteTab(tabId);
         break;
     }
-    // Close the context menu after action
     hideContextMenu();
   }, [tabs, setTabs, openEditModal, handleDuplicateTab, handleDeleteTab, hideContextMenu]);
 

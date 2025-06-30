@@ -9,7 +9,6 @@ import useAddButtonHover from '@/hooks/useAddButtonHover';
 import useTabContextMenuActions from '@/hooks/useTabContextMenuActions';
 import { Tab } from '@/hooks/useDraggableTabs';
 
-// Import components
 import TabItem from './TabItem';
 import TabSeparator from './TabSeparator';
 import AddTabButton from './AddTabButton';
@@ -22,8 +21,7 @@ interface TabSystemProps {
   onTabChange?: (tabId: string) => void;
 }
 
-const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) => {
-  // Use the tab management hook
+const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) => {  
   const { 
     tabs, 
     setTabs, 
@@ -33,7 +31,6 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
     handleDeleteTab 
   } = useTabManagement({ initialTabs, onTabChange });
   
-  // Use the custom drag and drop hook
   const { 
     handleDragStart, 
     handleDragOver, 
@@ -42,7 +39,6 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
     draggedTab 
   } = useDraggableTabs({ tabs, setTabs });
   
-  // Use the add button hover hook
   const { 
     showAddButton, 
     setShowAddButton, 
@@ -50,7 +46,6 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
     handleMouseLeave 
   } = useAddButtonHover();
   
-  // Use the context menu hook
   const { 
     contextMenu, 
     contextMenuRef, 
@@ -63,7 +58,6 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
     hideContextMenu: () => void;
   };
   
-  // Use the edit modal hook
   const { 
     editModal, 
     modalInputRef, 
@@ -80,7 +74,6 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
     openEditModal: (tabId: string) => void;
   };
   
-  // Use the context menu actions hook
   const { handleContextMenuAction } = useTabContextMenuActions({
     tabs,
     setTabs,
@@ -92,7 +85,6 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
   
   const tabsRef = useRef<HTMLDivElement>(null);
   
-  // Wrapper for handleAddTab that also hides the add button
   const handleAddTab = (index: number) => {
     addTab(index);
     setShowAddButton(null);
@@ -105,17 +97,15 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
         role="tablist"
         aria-label="Document tabs"
       >
-        {/* Dashed line connecting all tabs - only as long as the tabs */}
         <div className="absolute top-1/2 border-b border-dashed border-gray-300 -z-10" 
           style={{
             left: '0',
-            width: `${tabs.length * 100}px`, // Approximate width based on number of tabs
+            width: `${tabs.length * 100}px`,
           }}
         ></div>
         
         {tabs.map((tab, index) => (
           <React.Fragment key={tab.id}>
-            {/* Tab */}
             <TabItem
               tab={tab}
               index={index}
@@ -129,7 +119,6 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
               tabsLength={tabs.length}
             />
             
-            {/* Separator between tabs */}
             {index < tabs.length - 1 && (
               <TabSeparator
                 index={index}
@@ -142,7 +131,6 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
           </React.Fragment>
         ))}
         
-        {/* Add button for the end */}
         <AddTabButton
           tabsLength={tabs.length}
           showAddButton={showAddButton}
@@ -151,14 +139,12 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
           handleAddTab={handleAddTab}
         />
         
-        {/* Add page button */}
         <AddPageButton
           handleAddTab={handleAddTab}
           tabsLength={tabs.length}
         />
       </div>
       
-      {/* Edit Tab Modal */}
       <EditModal
         editModal={editModal}
         modalInputRef={modalInputRef}
@@ -167,7 +153,6 @@ const TabSystem: React.FC<TabSystemProps> = ({ initialTabs = [], onTabChange }) 
         handleModalKeyDown={handleModalKeyDown}
       />
       
-      {/* Context Menu */}
       <ContextMenu
         contextMenu={contextMenu}
         contextMenuRef={contextMenuRef}

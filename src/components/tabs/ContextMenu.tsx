@@ -27,8 +27,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         left: `${contextMenu.x}px`, 
         top: `${contextMenu.y}px`,
         minWidth: '200px',
-        transform: 'translateY(-100%)', // Position above without horizontal shift
-        marginTop: '-20px' // Exactly 20px above the tab
+        transform: 'translateY(-100%)',
+        marginTop: '-20px'
       }}
       role="menu"
       aria-orientation="vertical"
@@ -39,7 +39,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       </div>
       
       <div>
-        {/* Set as first page */}
         <TabContextMenuActions
           action="setFirst"
           label="Set as first page"
@@ -48,7 +47,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           onClick={() => handleContextMenuAction('setFirst', contextMenu.tabId)}
         />
         
-        {/* Rename */}
         <TabContextMenuActions
           action="rename"
           label="Rename"
@@ -57,7 +55,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           onClick={() => handleContextMenuAction('rename', contextMenu.tabId)}
         />
         
-        {/* Copy */}
         <TabContextMenuActions
           action="copy"
           label="Copy"
@@ -66,7 +63,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           onClick={() => handleContextMenuAction('copy', contextMenu.tabId)}
         />
         
-        {/* Duplicate */}
         <TabContextMenuActions
           action="duplicate"
           label="Duplicate"
@@ -76,10 +72,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         />
       </div>
       
-      {/* Divider */}
       <div className="border-t border-gray-200 my-1"></div>
       
-      {/* Delete */}
       <div>
         <TabContextMenuActions
           action="delete"

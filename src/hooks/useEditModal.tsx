@@ -22,9 +22,7 @@ interface UseEditModalReturn {
   closeEditModal: () => void;
 }
 
-/**
- * Custom hook for managing edit modal state and behavior
- */
+
 const useEditModal = ({ tabs, setTabs }: UseEditModalProps): UseEditModalReturn => {
   const [editModal, setEditModal] = useState<EditModalState>({ 
     visible: false, 
@@ -34,7 +32,6 @@ const useEditModal = ({ tabs, setTabs }: UseEditModalProps): UseEditModalReturn 
   
   const modalInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle tab rename submission
   const handleTabRename = () => {
     if (editModal.title.trim()) {
       setTabs(tabs.map(tab => 
@@ -44,14 +41,12 @@ const useEditModal = ({ tabs, setTabs }: UseEditModalProps): UseEditModalReturn 
     }
   };
 
-  // Focus input when modal opens
   useEffect(() => {
     if (editModal.visible && modalInputRef.current) {
       modalInputRef.current.focus();
     }
   }, [editModal.visible]);
 
-  // Handle keyboard events in the modal
   const handleModalKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleTabRename();

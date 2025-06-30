@@ -7,9 +7,6 @@ interface UseAddButtonHoverReturn {
   handleMouseLeave: () => void;
 }
 
-/**
- * Custom hook for managing add button hover state
- */
 const useAddButtonHover = (): UseAddButtonHoverReturn => {
   const [showAddButton, setShowAddButton] = useState<number | null>(null);
 
