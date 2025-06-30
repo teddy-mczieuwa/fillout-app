@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import TabSystem from "@/components/TabSystem";
+import TabSystem from "@/components/tabs/TabSystem";
 import { InfoPage, DetailsPage, OtherPage, EndingPage } from "@/components/TabPages";
 
 export default function Home() {
