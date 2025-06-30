@@ -36,12 +36,12 @@ const TabItem: React.FC<TabItemProps> = ({
       aria-controls={`tabpanel-${tab.id}`}
       id={`tab-${tab.id}`}
       tabIndex={0}
-      className={`px-3 py-1 cursor-pointer select-none transition-colors flex
+      className={`px-3 py-1 cursor-pointer select-none flex focus:bg-white
          focus:outline-blue-200 border border-gray-300
-        items-center z-10 rounded text-sm ${
+        items-center z-10 bg-gray-200 hover:bg-gray-300 rounded text-sm ${
         tab.isActive 
         ? 'text-black font-medium bg-white border border-gray-300 hover:bg-white' 
-        : 'text-gray-500 bg-gray-200 hover:bg-gray-300 hover:text-gray-700'
+        : 'text-gray-500 hover:text-gray-700'
       } ${draggedTab && draggedTab.id === tab.id ? 'opacity-0' : 'opacity-100'}`}
       draggable
       onDragStart={(e) => handleDragStart(e, tab, index)}
