@@ -44,7 +44,11 @@ const TabItem: React.FC<TabItemProps> = ({
         : 'text-gray-500 hover:text-gray-700'
       } ${draggedTab && draggedTab.id === tab.id ? 'opacity-0' : 'opacity-100'}`}
       draggable
-      onDragStart={(e) => handleDragStart(e, tab, index)}
+      onDragStart={(e) => {
+        // Remove focus when dragging starts
+        (e.target as HTMLElement).blur();
+        handleDragStart(e, tab, index);
+      }}
       onDragOver={(e) => handleDragOver(e, index)}
       onDragEnd={handleDragEnd}
       onDrop={(e) => handleDrop(e)}
