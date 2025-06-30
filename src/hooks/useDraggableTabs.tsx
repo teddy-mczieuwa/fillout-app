@@ -57,7 +57,7 @@ const createDragGhost = (element: HTMLElement): HTMLElement => {
   Object.assign(dragGhost.style, {
     width: `${element.offsetWidth}px`,
     height: `${element.offsetHeight}px`,
-    opacity: '0.7',
+    opacity: '1',
     position: 'absolute',
     top: '-1000px',
     left: '-1000px',
